@@ -3,6 +3,12 @@
 *.tfstate.*
 .terraform/
 .terraform.lock.hcl
+*.tfplan
+
+# Exclude all tfvars files, which might contain sensitive data
+*.tfvars
+# But keep the example file
+!terraform.tfvars.example
 
 # Environment variables
 .env

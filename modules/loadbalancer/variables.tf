@@ -12,3 +12,8 @@ variable "health_check_id" {
   description = "The ID of the health check"
   type        = string
 }
+
+variable "environment" {
+  description = "Deployment environment (qa, test, prod)"
+  type        = string
+}

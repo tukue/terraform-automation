@@ -22,3 +22,8 @@ variable "subnetwork_id" {
   description = "The ID of the subnetwork"
   type        = string
 }
+
+variable "environment" {
+  description = "Deployment environment (qa, test, prod)"
+  type        = string
+}
