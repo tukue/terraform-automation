@@ -7,3 +7,9 @@ variable "region" {
   description = "GCP Region"
   type        = string
 }
+
+variable "environment" {
+  description = "Deployment environment (qa, test, prod)"
+  type        = string
+}
+

@@ -1,3 +1,9 @@
+variable "environment" {
+  description = "Deployment environment (qa, test, prod)"
+  type        = string
+  default     = "dev"
+}
+
 variable "project_id" {
   description = "GCP Project ID"
   type        = string
@@ -37,3 +43,4 @@ variable "instance_count" {
   description = "Number of instances in the fleet"
   type        = number
 }
+
