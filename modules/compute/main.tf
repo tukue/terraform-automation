@@ -20,6 +20,14 @@ resource "google_compute_instance_template" "web_server_template" {
 
   tags = ["http-server", "${var.environment}-instance"]
 
+  metadata = {
+    environment = var.environment
+    managed-by = "terraform"
+    owner = var.tags["owner"]
+    department = var.tags["department"]
+    cost-center = var.tags["cost_center"]
+  }
+
   metadata_startup_script = <<-EOT
     #!/bin/bash
     apt-get update

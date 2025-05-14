@@ -44,3 +44,21 @@ variable "instance_count" {
   type        = number
 }
 
+# Tag-related variables
+variable "owner" {
+  description = "Owner of the resources"
+  type        = string
+  default     = "infrastructure-team"
+}
+
+variable "department" {
+  description = "Department responsible for the resources"
+  type        = string
+  default     = "engineering"
+}
+
+variable "cost_center" {
+  description = "Cost center for billing purposes"
+  type        = string
+  default     = "cc-123456"
+}

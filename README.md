@@ -1,24 +1,58 @@
-# Terraform GCP Infrastructure Automation
+# Advanced Terraform Project
 
-This repository contains Terraform configurations to automate the deployment of a scalable web application infrastructure on Google Cloud Platform (GCP). It includes resources for networking, compute, database, and load balancing.
+This project demonstrates an advanced Terraform setup for deploying infrastructure on Google Cloud Platform with proper tagging and modular structure.
 
-## Features
+## Project Structure
 
-- **VPC Network and Subnet**: Custom network and subnet for resource isolation.
-- **Firewall Rules**: Allow HTTP traffic to web servers.
-- **Cloud SQL Database**: PostgreSQL instance for application data.
-- **Instance Template and Group**: Apache web server instances managed by an instance group.
-- **Load Balancer**: HTTP load balancer with health checks, backend service, and URL mapping.
+- `main.tf` - Main configuration file
+- `variables.tf` - Variable definitions
+- `modules/` - Reusable modules
+  - `tags/` - Common tagging module
+  - `network/` - Network infrastructure
+  - `database/` - Database resources
+  - `compute/` - Compute instances
+  - `loadbalancer/` - Load balancer configuration
+- `environments/` - Environment-specific variable files
+  - `qa.tfvars` - QA environment
+  - `test.tfvars` - Test environment
+  - `prod.tfvars` - Production environment
 
-## Prerequisites
+## Tagging Strategy
 
-- [Terraform](https://www.terraform.io/downloads.html) installed.
-- A GCP project with billing enabled.
-- Service account credentials with the necessary permissions.
+Resources are tagged with:
+- Environment (qa, test, prod)
+- Project ID
+- Owner
+- Department
+- Cost Center
 
-## Usage
+## Deployment Instructions
 
-1. Clone the repository:
-   ```sh
-   git clone https://github.com/tukue/terraform-automation.git
-   cd terraform-automation
+### For Linux/Mac:
+```bash
+./deploy.sh <environment>
+```
+
+### For Windows:
+```cmd
+test_deploy.bat <environment>
+```
+
+Where `<environment>` is one of: qa, test, prod
+
+## Testing the Deployment
+
+1. Initialize Terraform:
+```
+terraform init
+```
+
+2. Run a plan for a specific environment:
+```
+terraform plan -var-file="environments/qa.tfvars"
+```
+
+3. Apply the configuration:
+```
+terraform apply -var-file="environments/qa.tfvars"
+```

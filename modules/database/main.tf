@@ -21,6 +21,9 @@ resource "google_sql_database_instance" "db_instance" {
     ip_configuration {
       ipv4_enabled = true
     }
+    
+    # Add user labels (tags)
+    user_labels = var.tags
   }
 
   # Enable deletion protection for production

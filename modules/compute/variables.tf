@@ -19,11 +19,17 @@ variable "instance_count" {
 }
 
 variable "subnetwork_id" {
-  description = "The ID of the subnetwork"
+  description = "ID of the subnetwork"
   type        = string
 }
 
 variable "environment" {
   description = "Deployment environment (qa, test, prod)"
   type        = string
+}
+
+variable "tags" {
+  description = "A map of tags to apply to resources"
+  type        = map(string)
+  default     = {}
 }

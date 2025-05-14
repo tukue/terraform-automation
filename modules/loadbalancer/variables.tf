@@ -4,16 +4,22 @@ variable "project_id" {
 }
 
 variable "instance_group" {
-  description = "The instance group resource"
+  description = "Instance group for the load balancer"
   type        = string
 }
 
 variable "health_check_id" {
-  description = "The ID of the health check"
+  description = "Health check ID"
   type        = string
 }
 
 variable "environment" {
   description = "Deployment environment (qa, test, prod)"
   type        = string
+}
+
+variable "tags" {
+  description = "A map of tags to apply to resources"
+  type        = map(string)
+  default     = {}
 }
