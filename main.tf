@@ -19,7 +19,6 @@ module "network" {
   project_id  = var.project_id
   region      = var.region
   environment = var.environment
-  tags        = module.tags.tags
 }
 
 # Database Module

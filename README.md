@@ -2,6 +2,31 @@
 
 This project demonstrates an advanced Terraform setup for deploying infrastructure on Google Cloud Platform with proper tagging and modular structure.
 
+## Infrastructure Architecture
+
+```
+                                   ┌─────────────────┐
+                                   │                 │
+                                   │  Load Balancer  │
+                                   │                 │
+                                   └────────┬────────┘
+                                            │
+                                            ▼
+┌─────────────────┐              ┌─────────────────────┐
+│                 │              │                     │
+│  VPC Network    │◄────────────►│  Compute Instances  │
+│                 │              │                     │
+└────────┬────────┘              └─────────────────────┘
+         │                                  │
+         │                                  │
+         ▼                                  ▼
+┌─────────────────┐              ┌─────────────────────┐
+│                 │              │                     │
+│    Firewall     │              │   Cloud SQL DB      │
+│                 │              │                     │
+└─────────────────┘              └─────────────────────┘
+```
+
 ## Project Structure
 
 - `main.tf` - Main configuration file
@@ -56,3 +81,27 @@ terraform plan -var-file="environments/qa.tfvars"
 ```
 terraform apply -var-file="environments/qa.tfvars"
 ```
+
+## Infrastructure as Code Best Practices
+
+- **Version Control**: All infrastructure code is stored in version control
+- **Code Reviews**: Changes undergo peer review before deployment
+- **Modular Design**: Resources organized into reusable modules
+- **DRY Principle**: Common configurations extracted to avoid repetition
+- **Consistent Formatting**: Code formatted with `terraform fmt`
+- **Validation**: Pre-deployment validation with `terraform validate`
+- **Documentation**: Resources and variables include descriptions
+- **State Management**: Remote state with locking for team collaboration
+- **Immutable Infrastructure**: Resources replaced rather than modified in-place
+- **Automated Testing**: Infrastructure tested with Terratest or similar tools
+
+## Best Practices
+
+- **Modular Design**: Resources are organized into logical modules for better maintainability
+- **Environment Separation**: Different configurations for qa, test, and prod environments
+- **Resource Tagging**: Consistent tagging strategy for cost allocation and resource management
+- **Least Privilege**: IAM roles follow principle of least privilege
+- **Secure Networking**: VPC with proper firewall rules and network segmentation
+- **State Management**: Remote state with locking for team collaboration
+- **Parameterization**: Variables used for all environment-specific values
+- **Version Pinning**: Terraform and provider versions are pinned for consistency

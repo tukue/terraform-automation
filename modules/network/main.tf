@@ -23,7 +23,6 @@ resource "google_compute_firewall" "allow_http" {
   }
 
   source_ranges = ["0.0.0.0/0"]
-  
-  # Add environment-specific tag
-  target_tags   = ["http-server", "${var.environment}-firewall"]
+  target_tags   = ["http-server"]
 }
+
