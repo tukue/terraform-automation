@@ -47,7 +47,16 @@ resource "google_compute_firewall" "allow_essential_egress" {
 
   allow {
     protocol = "tcp"
-    ports    = ["80"] # HTTP only
+    ports    = ["443", "587", "3306", "5432"] #HTTPS, SMTP, MySQL, PostgreSQL
+  }
+
+  allow {
+    protocol = "udp"
+    ports    = ["53"] # DNS
+  }
+
+  allow {
+    protocol = "icmp"
   }
 
   destination_ranges = ["0.0.0.0/0"]
