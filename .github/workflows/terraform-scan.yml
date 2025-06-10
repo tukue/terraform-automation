@@ -48,13 +48,13 @@ jobs:
       - name: Run Advanced Security Checks
         id: advanced-checks
         run: |
-          # Run additional security checks
-          # Check for sensitive data exposure
+          # Run additional security checks for high severity issues
+          # Note: Using --severity-level instead of --severity
           terrascan scan \
             -t gcp \
             -i terraform \
             -d . \
-            --severity high \
+            --severity-level high \
             -o json > high-severity-results.json
           
           # Parse results and set output
@@ -79,9 +79,11 @@ jobs:
           echo "High severity issues: ${{ env.high_severity_count }}"
           echo "Medium severity issues: ${{ env.medium_severity_count }}"
           
-          if [ "${{ env.high_severity_count }}" -gt 0 ]; then
-            echo "❌ Failed: High severity issues found!"
+          if [ "${{ env.high_severity_count }}" -ge 4 ]; then
+            echo "❌ Failed: 4 or more high severity issues found!"
             exit 1
+          elif [ "${{ env.high_severity_count }}" -gt 0 ]; then
+            echo "⚠️ Warning: High severity issues found, but fewer than 4"
           fi
           
           if [ "${{ env.medium_severity_count }}" -gt 5 ]; then

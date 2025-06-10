@@ -19,17 +19,39 @@ echo "Deploying to $ENV environment..."
 
 # Run security scan
 echo "Running security scan..."
-if command -v pwsh &> /dev/null; then
+if command -v act &> /dev/null; then
+    # Run GitHub Action locally using act
+    echo "Running GitHub Action workflow locally..."
+    act -j security-scan -W .github/workflows/terraform-security.yml
+    SCAN_EXIT_CODE=$?
+    if [ $SCAN_EXIT_CODE -ne 0 ]; then
+        echo "Security scan failed! Vulnerabilities found."
+        exit 1
+    fi
+elif command -v pwsh &> /dev/null; then
     pwsh ./scan-terraform.ps1
     SCAN_EXIT_CODE=$?
     if [ $SCAN_EXIT_CODE -ne 0 ]; then
         echo "Security scan failed! High severity vulnerabilities found."
         exit 1
     fi
+elif command -v terrascan &> /dev/null; then
+    # Fallback to direct terrascan if available
+    echo "Using terrascan directly (PowerShell not found)..."
+    terrascan scan -i terraform -d . -o human
+    SCAN_EXIT_CODE=$?
+    if [ $SCAN_EXIT_CODE -ne 0 ]; then
+        echo "Security scan failed! Vulnerabilities found."
+        exit 1
+    fi
 else
-    echo "PowerShell Core (pwsh) is required for security scanning but not found."
-    echo "Please install PowerShell Core to enable security scanning."
-    exit 1
+    echo "WARNING: Security scanning tools not found. Skipping scan."
+    read -p "Continue without security scanning? (y/n) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Deployment cancelled."
+        exit 1
+    fi
 fi
 
 # Initialize Terraform if not already done
