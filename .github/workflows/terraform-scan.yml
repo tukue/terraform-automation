@@ -21,7 +21,9 @@ jobs:
 
       - name: Install Terrascan
         run: |
-          curl -L "$(curl -s https://api.github.com/repos/accurics/terrascan/releases/latest | grep -o -E "https://.+?_Linux_x86_64.tar.gz")" > terrascan.tar.gz
+          TERRASCAN_VERSION=$(curl -s https://api.github.com/repos/tenable/terrascan/releases/latest | jq -r '.tag_name')
+          TERRASCAN_VERSION=${TERRASCAN_VERSION#v}
+          wget https://github.com/tenable/terrascan/releases/download/v${TERRASCAN_VERSION}/terrascan_${TERRASCAN_VERSION}_Linux_x86_64.tar.gz -O terrascan.tar.gz
           tar -xf terrascan.tar.gz terrascan
           rm terrascan.tar.gz
           sudo install terrascan /usr/local/bin
