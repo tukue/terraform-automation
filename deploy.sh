@@ -17,13 +17,12 @@ fi
 
 echo "Deploying to $ENV environment..."
 
-<<<<<<< Updated upstream
-=======
 # Run security scan
 echo "Running security scan..."
 if command -v act &> /dev/null; then
     # Run GitHub Action locally using act
     echo "Running GitHub Action workflow locally..."
+
     act -j security-scan -W .github/workflows/terraform-scan.yml
     SCAN_EXIT_CODE=$?
     if [ $SCAN_EXIT_CODE -ne 0 ]; then
@@ -56,7 +55,10 @@ else
     fi
 fi
 
+<<<<<<< HEAD
 >>>>>>> Stashed changes
+=======
+>>>>>>> 92e53597d3cd11f06f678252d3ee5b820badbb6e
 # Initialize Terraform if not already done
 if [ ! -d ".terraform" ]; then
     echo "Initializing Terraform..."
