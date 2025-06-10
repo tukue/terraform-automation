@@ -43,6 +43,19 @@ jobs:
             -i terraform \
             -d . \
             -o human | tee terrascan-human.txt
+            
+          # Generate SARIF output
+          terrascan scan \
+            -t gcp \
+            -i terraform \
+            -d . \
+            -o sarif > terrascan.sarif || true
+            
+          # Verify SARIF file is valid JSON
+          if ! jq empty terrascan.sarif 2>/dev/null; then
+            echo "SARIF file is invalid or empty, creating a minimal valid SARIF file"
+            echo '{"version":"2.1.0","$schema":"https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json","runs":[{"tool":{"driver":{"name":"terrascan","informationUri":"https://github.com/accurics/terrascan","rules":[]}},"results":[]}]}' > terrascan.sarif
+          fi
         continue-on-error: true
 
       - name: Run Advanced Security Checks
@@ -72,6 +85,12 @@ jobs:
             terrascan-results.json
             terrascan-human.txt
             high-severity-results.json
+            terrascan.sarif
+
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: terrascan.sarif
 
       - name: Check Results and Fail if Necessary
         run: |
