@@ -97,21 +97,15 @@ jobs:
             high-severity-results.json
             terrascan.sarif
 
-      # Only run SARIF upload in GitHub Actions environment, not locally with act
-      - name: Check if running in GitHub Actions
-        id: check_github
-        run: |
-          if [ -n "$GITHUB_ACTIONS" ] && [ "$GITHUB_ACTIONS" = "true" ]; then
-            echo "running_in_github=true" >> $GITHUB_OUTPUT
-          else
-            echo "running_in_github=false" >> $GITHUB_OUTPUT
-          fi
-
+            # Upload SARIF file for code scanning
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v3
-        if: steps.check_github.outputs.running_in_github == 'true'
+        # This step requires GitHub Advanced Security to be enabled
+        # Set continue-on-error to true to prevent workflow failures
+        continue-on-error: true
         with:
           sarif_file: terrascan.sarif
+          category: terrascan
 
       - name: Check Results and Fail if Necessary
         run: |
