@@ -105,3 +105,56 @@ terraform apply -var-file="environments/qa.tfvars"
 - **State Management**: Remote state with locking for team collaboration
 - **Parameterization**: Variables used for all environment-specific values
 - **Version Pinning**: Terraform and provider versions are pinned for consistency
+
+## Security Scanning
+
+The project includes comprehensive security scanning using Terrascan, integrated in multiple ways:
+
+1. **Local Scanning**: Use the PowerShell script for local development:
+```powershell
+.\scan-terraform.ps1 [directory]
+```
+
+2. **CI/CD Integration**: Enhanced GitHub Actions workflow automatically runs Terrascan on:
+- All pull requests to main/master branches
+- All pushes to main/master branches
+- Manual triggers via workflow_dispatch
+
+The automated security scanning includes:
+
+### Basic Scan
+- Validates infrastructure against security best practices
+- Generates both JSON and human-readable reports
+- Checks for common cloud misconfigurations
+
+### Advanced Security Checks
+- Dedicated high-severity issue scanning
+- Separate analysis of medium-severity findings
+- Configurable thresholds for different severity levels
+
+### Reporting and Artifacts
+- Detailed JSON reports for programmatic analysis
+- Human-readable outputs for quick review
+- Automated artifact storage of all scan results
+- Summary reports in workflow logs
+
+### Failure Conditions
+- Automatic failure on ANY high-severity findings
+- Warnings for excessive medium-severity issues (>5)
+- Detailed error reporting and remediation guidance
+
+### Security Policies
+The scanning enforces policies including:
+- SSL/TLS requirements for database connections
+- Proper network security configurations
+- IAM best practices
+- Storage encryption requirements
+- Resource access controls
+- Network segmentation rules
+
+### Viewing Results
+Scan results can be accessed in multiple ways:
+1. GitHub Actions workflow run summary
+2. Downloaded artifacts from the workflow run
+3. Local scan results in `terrascan-results.json`
+4. Human-readable output in the workflow logs

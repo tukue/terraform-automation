@@ -17,6 +17,21 @@ fi
 
 echo "Deploying to $ENV environment..."
 
+# Run security scan
+echo "Running security scan..."
+if command -v pwsh &> /dev/null; then
+    pwsh ./scan-terraform.ps1
+    SCAN_EXIT_CODE=$?
+    if [ $SCAN_EXIT_CODE -ne 0 ]; then
+        echo "Security scan failed! High severity vulnerabilities found."
+        exit 1
+    fi
+else
+    echo "PowerShell Core (pwsh) is required for security scanning but not found."
+    echo "Please install PowerShell Core to enable security scanning."
+    exit 1
+fi
+
 # Initialize Terraform if not already done
 if [ ! -d ".terraform" ]; then
     echo "Initializing Terraform..."
