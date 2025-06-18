@@ -1,47 +1,47 @@
-provider "google" {
-  project = var.project_id
-  region  = var.region
-}
-
+provider "google" {e
+  project = var.project_idase_instance" "db_instance" {
+  region  = var.region${var.db_instance}-${var.environment}"
+} database_version = var.db_version
+  region           = var.region
 # VPC Network
 resource "google_compute_network" "app_network" {
   name                    = "${var.project_id}-network"
-  auto_create_subnetworks = false
-}
-
-# Subnet
+  auto_create_subnetworks = falseod" ? "db-custom-2-7680" : (var.environment == "test" ? "db-custom-1-3840" : "db-f1-micro")
+}   
+    # High availability for production only
+# Subnetlability_type = var.environment == "prod" ? "REGIONAL" : "ZONAL"
 resource "google_compute_subnetwork" "app_subnetwork" {
   name          = "${var.project_id}-subnetwork"
   ip_cidr_range = "10.0.0.0/24"
-  network       = google_compute_network.app_network.id
-  region        = var.region
-}
-
+  network       = google_compute_network.app_network.id var.environment == "test"
+  region        = var.region02:00"
+}     binary_log_enabled = var.environment == "prod"
+    }
 # Firewall rule for HTTP
 resource "google_compute_firewall" "allow_http" {
   name    = "${var.project_id}-allow-http"
-  network = google_compute_network.app_network.id
-
+  network = google_compute_network.app_network.idfrom "REQUIRE_SSL" to "ENCRYPTED_ONLY"
+    }
   allow {
-    protocol = "tcp"
-    ports    = ["80"]
+    protocol = "tcp"s (tags)
+    ports    = ["80"].tags
   }
 
-  source_ranges = ["0.0.0.0/0"]
-  target_tags   = ["http-server"]
+  source_ranges = ["0.0.0.0/0"]for production
+  target_tags   = ["http-server"]onment == "prod"
 }
 
 # Cloud SQL Instance
 resource "google_sql_database_instance" "db_instance" {
-  name             = var.db_instance
-  database_version = var.db_version
+  name             = var.db_instancenvironment}"
+  database_version = var.db_versionstance.db_instance.name
   region           = var.region
 
   settings {
     tier = "db-f1-micro"
     ip_configuration {
       ipv4_enabled = true
-      ssl_mode     = "REQUIRE_SSL"  # Changed from "REQUIRE" to "REQUIRE_SSL"
+      ssl_mode     = "ENCRYPTED_ONLY"  # Changed from "REQUIRE_SSL" to "ENCRYPTED_ONLY"
     }
   }
 
