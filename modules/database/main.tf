@@ -20,7 +20,7 @@ resource "google_sql_database_instance" "db_instance" {
     
     ip_configuration {
       ipv4_enabled = true
-      ssl_mode     = "REQUIRE"
+      ssl_mode     = "REQUIRE_SSL"  # Changed from "REQUIRE" to "REQUIRE_SSL"
     }
     
     # Add user labels (tags)
