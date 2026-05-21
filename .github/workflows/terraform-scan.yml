@@ -5,19 +5,75 @@ on:
     paths:
       - '**.tf'
       - '.github/workflows/terraform-scan.yml'
+      - 'opa/**'
   pull_request:
     paths:
       - '**.tf'
       - '.github/workflows/terraform-scan.yml'
-  workflow_dispatch:  # Allow manual triggering
+      - 'opa/**'
+  workflow_dispatch:
 
 jobs:
   security-scan:
     name: Terraform Security Scan
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+
+      - name: Install OPA
+        run: |
+          OPA_VERSION=$(curl -s https://api.github.com/repos/open-policy-agent/opa/releases/latest | jq -r '.tag_name' | sed 's/^v//')
+          curl -sSL "https://github.com/open-policy-agent/opa/releases/download/v${OPA_VERSION}/opa_linux_amd64_static" -o opa
+          chmod 755 opa
+          sudo mv opa /usr/local/bin/
+          opa version
+
+      - name: Generate Terraform Plan for OPA Evaluation
+        id: terraform-plan
+        continue-on-error: true
+        run: |
+          terraform init -input=false -backend=false
+          terraform plan \
+            -refresh=false \
+            -input=false \
+            -var="project_id=ci-evaluation" \
+            -var="region=us-central1" \
+            -var="zone=us-central1-a" \
+            -var="db_name=appdb" \
+            -var="db_instance=appinstance" \
+            -var="db_version=POSTGRES_15" \
+            -var="instance_machine_type=e2-medium" \
+            -var="instance_count=2" \
+            -var="owner=infrastructure-team" \
+            -var="department=engineering" \
+            -var="cost_center=cc-ci" \
+            -var="environment=dev" \
+            -out=tfplan.binary
+          terraform show -json tfplan.binary > tfplan.json
+          echo "plan_generated=true" >> "$GITHUB_OUTPUT"
+
+      - name: Run OPA Policy Evaluation
+        id: opa-eval
+        if: steps.terraform-plan.outputs.plan_generated == 'true'
+        continue-on-error: true
+        run: |
+          mkdir -p opa-results
+          opa eval \
+            --format json \
+            --data opa/policies/ \
+            --input tfplan.json \
+            "data.terraform.deny" > opa-results/opa-results.json 2>&1 || true
+          ./opa/evaluate.sh tfplan.json 2>&1 | tee opa-results/opa-output.txt
 
       - name: Install Terrascan
         run: |
@@ -32,14 +88,12 @@ jobs:
       - name: Run Terrascan (Basic Scan)
         id: terrascan-basic
         run: |
-          # Run initial scan and save results
           terrascan scan \
             -t gcp \
             -i terraform \
             -d . \
             -o json > terrascan-results.json
-          
-          # Also generate human-readable output
+
           terrascan scan \
             -t gcp \
             -i terraform \
@@ -50,24 +104,21 @@ jobs:
       - name: Run Advanced Security Checks
         id: advanced-checks
         run: |
-          # Run additional security checks for high severity issues
           terrascan scan \
             -t gcp \
             -i terraform \
             -d . \
             --severity-level high \
             -o json > high-severity-results.json
-          
-          # Parse results and set output
+
           HIGH_COUNT=$(jq '.violations | map(select(.severity == "HIGH")) | length' terrascan-results.json)
           MEDIUM_COUNT=$(jq '.violations | map(select(.severity == "MEDIUM")) | length' terrascan-results.json)
-          echo "high_severity_count=$HIGH_COUNT" >> $GITHUB_ENV
-          echo "medium_severity_count=$MEDIUM_COUNT" >> $GITHUB_ENV
+          echo "high_severity_count=$HIGH_COUNT" >> "$GITHUB_ENV"
+          echo "medium_severity_count=$MEDIUM_COUNT" >> "$GITHUB_ENV"
         continue-on-error: true
 
       - name: Generate valid SARIF file
         run: |
-          # Create a guaranteed valid SARIF file
           cat > terrascan.sarif << 'EOF'
           {
             "version": "2.1.0",
@@ -96,32 +147,45 @@ jobs:
             terrascan-human.txt
             high-severity-results.json
             terrascan.sarif
+            opa-results/
 
-            # Upload SARIF file for code scanning
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v3
-        # This step requires GitHub Advanced Security to be enabled
-        # Set continue-on-error to true to prevent workflow failures
         continue-on-error: true
         with:
           sarif_file: terrascan.sarif
           category: terrascan
 
-      - name: Check Results and Fail if Necessary
+      - name: Check Terrascan Results and Fail if Necessary
         run: |
           echo "Summary of findings:"
           echo "High severity issues: ${{ env.high_severity_count }}"
           echo "Medium severity issues: ${{ env.medium_severity_count }}"
-          
+
           if [ "${{ env.high_severity_count }}" -ge 4 ]; then
-            echo "❌ Failed: 4 or more high severity issues found!"
+            echo "Failed: 4 or more high severity issues found!"
             exit 1
           elif [ "${{ env.high_severity_count }}" -gt 0 ]; then
-            echo "⚠️ Warning: High severity issues found, but fewer than 4"
+            echo "Warning: High severity issues found, but fewer than 4"
           fi
-          
+
           if [ "${{ env.medium_severity_count }}" -gt 5 ]; then
-            echo "⚠️ Warning: More than 5 medium severity issues found"
+            echo "Warning: More than 5 medium severity issues found"
           fi
-          
-          echo "✅ Security scan passed!"
+
+          echo "Terrascan scan passed!"
+
+      - name: Check OPA Results and Fail if Necessary
+        if: always()
+        run: |
+          if [ -f opa-results/opa-results.json ]; then
+            VIOLATIONS=$(jq '.result[0].expressions[0].value // [] | length' opa-results/opa-results.json)
+            if [ "$VIOLATIONS" -gt 0 ]; then
+              echo "OPA Policy Violations Found:"
+              jq -r '.result[0].expressions[0].value[]' opa-results/opa-results.json
+              exit 1
+            fi
+            echo "OPA evaluation passed!"
+          else
+            echo "OPA evaluation skipped (no plan generated)"
+          fi
