@@ -35,6 +35,7 @@ deny contains msg if {
     r.change.actions[_] != "delete"
     settings := r.change.after.settings[_]
     labels := settings.user_labels
+    labels["managed_by"] != null
     labels["managed_by"] != "terraform"
 
     msg := sprintf("VIOLATION: %s managed_by tag must be 'terraform' (found: %v)", [r.address, labels["managed_by"]])
@@ -45,7 +46,7 @@ deny contains msg if {
     r.type == "google_compute_instance_template"
     r.change.actions[_] != "delete"
     labels := r.change.after.metadata
-    labels["managed-by"] != "terraform"
+    labels["managed_by"] != "terraform"
 
-    msg := sprintf("VIOLATION: %s managed-by metadata must be 'terraform' (found: %v)", [r.address, labels["managed-by"]])
+    msg := sprintf("VIOLATION: %s managed_by metadata must be 'terraform' (found: %v)", [r.address, labels["managed_by"]])
 }

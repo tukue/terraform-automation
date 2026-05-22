@@ -34,10 +34,16 @@ if [ "$VIOLATIONS" == "[]" ] || [ -z "$VIOLATIONS" ]; then
 else
   echo "OPA Policy Violations Found:"
   echo "----------------------------------------"
-  echo "$VIOLATIONS" | jq -r '.[]'
+  if echo "$VIOLATIONS" | jq empty 2>/dev/null; then
+    echo "$VIOLATIONS" | jq -r '.[]'
+  else
+    echo "$VIOLATIONS"
+  fi
   echo "----------------------------------------"
   echo ""
-  COUNT=$(echo "$VIOLATIONS" | jq 'length')
-  echo "Total violations: $COUNT"
+  if echo "$VIOLATIONS" | jq empty 2>/dev/null; then
+    COUNT=$(echo "$VIOLATIONS" | jq 'length')
+    echo "Total violations: $COUNT"
+  fi
   exit 1
 fi

@@ -73,6 +73,7 @@ deny contains msg if {
     settings := after.settings[_]
     not startswith(settings.tier, "db-f1-micro")
     not startswith(settings.tier, "db-custom-")
+    settings.tier != ""
 
     msg := sprintf("VIOLATION: %s uses unapproved tier: %v (allowed: db-f1-micro, db-custom-*)", [r.address, settings.tier])
 }
